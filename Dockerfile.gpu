@@ -1,0 +1,37 @@
+FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+
+# 必要なパッケージのインストール
+RUN apt-get update && \
+  apt-get install -y \
+  python3.11 \
+  python3.11-venv \
+  python3-pip \
+  sudo \
+  build-essential \
+  ca-certificates \
+  wget \
+  curl \
+  git \
+  zip \
+  unzip \
+  nano \
+  ffmpeg \
+  software-properties-common \
+  gnupg \
+  gcc \
+  python3-dev \
+  && rm -rf /var/lib/apt/lists/*
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# ホストのStyle-Bert-VITS2のファイルをコピー
+COPY . .
+
+# 初期設定
+RUN python3.11 -m venv venv && \
+  . ./venv/bin/activate && \
+  pip install --upgrade pip && \
+  pip install wheel setuptools && \
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
+  pip install -r requirements.txt

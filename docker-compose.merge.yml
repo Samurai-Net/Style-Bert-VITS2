@@ -1,0 +1,23 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    ports:
+      - "7860:7860" # Web UI用
+    volumes:
+      - .:/app
+      - /app/venv
+    working_dir: /app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    command: >
+      bash -c "
+        . venv/bin/activate &&
+        python3.11 app.py --device cuda --host 0.0.0.0 --port 7860 --share
+      "

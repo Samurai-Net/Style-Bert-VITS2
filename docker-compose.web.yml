@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    ports:
+      - "8000:8000" # Web UI用
+    volumes:
+      - .:/app
+      - /app/venv
+    working_dir: /app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    command: >
+      bash -c "
+        . venv/bin/activate &&
+        if [ ! -d 'model_assets/amitaro' ]; then
+          python3.11 initialize.py
+        fi &&
+        python3.11 server_editor.py --inbrowser --device cuda
+      "

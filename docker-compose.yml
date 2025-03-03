@@ -1,0 +1,55 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+      - /app/venv
+    working_dir: /app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    command: >
+      bash -c "
+        . venv/bin/activate &&
+        if [ ! -d 'model_assets/amitaro' ]; then
+          python initialize.py
+        fi &&
+        python server_editor.py --inbrowser
+      "
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    volumes:
+      - .:/app
+      - /app/venv
+    working_dir: /app/
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    command: >
+      bash -c "
+        . venv/bin/activate &&
+        if [ ! -d 'model_assets/amitaro' ]; then
+          python initialize.py
+        fi &&
+        python server_fastapi.py
+      "
+
+volumes:
+  model_data:
